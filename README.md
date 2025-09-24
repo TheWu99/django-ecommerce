@@ -1,166 +1,246 @@
-# Django E-Commerce Project Setup Guide
+# Django E-commerce Site with Stripe Integration
 
-## Prerequisites
-- Python 3.8+ installed on your system
-- Git (optional, for version control)
+A full-featured e-commerce website built with Django 5.x, featuring product listings, shopping cart functionality, order management, and secure Stripe payment processing.
 
-## Installation Instructions
+## 🚀 Features
 
-### 1. Clone or Download the Project
-```bash
-# If using Git
-git clone <repository-url>
-cd django-ecommerce
+- **Product Catalog**: Browse products with detailed information and images
+- **Shopping Cart**: Add, remove, and update item quantities
+- **User Authentication**: Register, login, and manage profiles
+- **Order Management**: Complete order history and tracking
+- **Stripe Payments**: Secure payment processing with multiple payment methods
+- **Payment Retry**: Failed payment retry functionality
+- **Admin Interface**: Django admin for inventory and order management
+- **Responsive Design**: Mobile-friendly UI with Tailwind CSS
+- **Test Mode**: Comprehensive testing setup with Stripe test cards
 
-# Or download and extract the project files
+## 🛠 Technology Stack
+
+- **Framework**: Django 5.2.6 (Python)
+- **Architecture**: Model-View-Template (MVT)
+- **Frontend**: HTML5, Tailwind CSS, JavaScript
+- **Database**: SQLite (development), PostgreSQL ready
+- **Payments**: Stripe API integration
+- **Authentication**: Django built-in auth system
+- **Environment**: Python virtual environment with pip
+
+## 📦 Installation & Setup
+
+### Prerequisites
+- Python 3.8+
+- pip (Python package manager)
+- Git
+
+### Quick Start
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/django-ecommerce-site.git
+   cd django-ecommerce-site
+   ```
+
+2. **Create virtual environment**
+   ```bash
+   python -m venv .venv
+   
+   # On Windows:
+   .venv\Scripts\activate
+   
+   # On macOS/Linux:
+   source .venv/bin/activate
+   ```
+
+3. **Install dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Environment setup**
+   ```bash
+   # Copy the example environment file
+   cp .env.example .env
+   
+   # Edit .env with your settings (especially Stripe keys)
+   ```
+
+5. **Database setup**
+   ```bash
+   python manage.py makemigrations
+   python manage.py migrate
+   ```
+
+6. **Create superuser (optional)**
+   ```bash
+   python manage.py createsuperuser
+   ```
+
+7. **Run development server**
+   ```bash
+   python manage.py runserver
+   ```
+
+8. **Visit the site**
+   - Main site: http://127.0.0.1:8000/
+   - Admin panel: http://127.0.0.1:8000/admin/
+
+## 💳 Stripe Integration
+
+### Test Mode Setup
+
+1. **Get Stripe Test Keys**
+   - Sign up at [stripe.com](https://stripe.com)
+   - Get test keys from the Stripe Dashboard
+   - Update your `.env` file:
+     ```
+     STRIPE_PUBLISHABLE_KEY=pk_test_...
+     STRIPE_SECRET_KEY=sk_test_...
+     ```
+
+2. **Test Card Numbers**
+   - **Success**: `4242 4242 4242 4242`
+   - **Declined**: `4000 0000 0000 0002`
+   - **Requires Auth**: `4000 0025 0000 3155`
+   - Use any future expiry date and any 3-digit CVC
+
+3. **Testing Workflow**
+   - Add products to cart
+   - Go to checkout
+   - Select "Credit Card (Stripe)"
+   - Enter test card details
+   - Complete payment flow
+
+For detailed testing instructions, see `STRIPE_TESTING.md`
+
+## 🏗 Project Structure
+
+```
+django-ecommerce-site/
+├── ecommerce_site/          # Django project configuration
+├── shop/                    # Product catalog app
+│   ├── models.py           # Product models
+│   ├── views.py            # Product views
+│   ├── admin.py            # Admin configuration
+│   └── templates/shop/     # Product templates
+├── cart/                    # Shopping cart functionality
+│   ├── cart.py             # Cart session management
+│   ├── views.py            # Cart views
+│   └── templates/cart/     # Cart templates
+├── orders/                  # Order management & payments
+│   ├── models.py           # Order and Payment models
+│   ├── views.py            # Order processing views
+│   ├── stripe_service.py   # Stripe integration
+│   ├── payment_forms.py    # Payment forms
+│   └── templates/orders/   # Order templates
+├── accounts/               # User authentication
+│   ├── forms.py            # User forms
+│   ├── views.py            # Auth views
+│   └── templates/accounts/ # Auth templates
+├── static/                 # Static files (CSS, JS)
+├── templates/              # Base templates
+├── requirements.txt        # Python dependencies
+├── .env.example           # Environment variables template
+└── STRIPE_TESTING.md      # Stripe testing guide
 ```
 
-### 2. Create Virtual Environment
+## 🎯 Key Features
+
+### E-commerce Core
+- **Product Management**: Full CRUD operations for products
+- **Category System**: Organize products by categories
+- **Image Handling**: Product image upload and display
+- **Inventory Tracking**: Stock management system
+
+### Shopping Experience
+- **Session-based Cart**: Persistent shopping cart
+- **Cart Management**: Add, remove, update quantities
+- **Order Processing**: Complete checkout workflow
+- **Order History**: User order tracking and history
+
+### Payment Processing
+- **Stripe Integration**: Secure credit card processing
+- **Multiple Payment Methods**: Credit card, PayPal, bank transfer
+- **Payment Retry**: Handle failed payments gracefully
+- **Transaction Tracking**: Complete payment audit trail
+
+### User Management
+- **Registration/Login**: Django authentication system
+- **User Profiles**: Customer information management
+- **Order History**: Personal order tracking
+- **Admin Interface**: Staff management tools
+
+## 🧪 Testing
+
+### Run Tests
 ```bash
-# Windows
-python -m venv .venv
-.\.venv\Scripts\activate
-
-# macOS/Linux
-python3 -m venv .venv
-source .venv/bin/activate
-```
-
-### 3. Install Dependencies
-```bash
-# Install all required packages
-pip install -r requirements.txt
-
-# Or install minimal dependencies only
-pip install -r requirements-minimal.txt
-```
-
-### 4. Environment Configuration
-```bash
-# Copy environment template
-cp .env.example .env
-
-# Edit .env file with your configuration
-# At minimum, set a SECRET_KEY
-```
-
-### 5. Database Setup
-```bash
-# Create database tables
-python manage.py migrate
-
-# Create superuser account
-python manage.py createsuperuser
-
-# Load sample data (optional)
-python manage.py loaddata fixtures/sample_data.json
-```
-
-### 6. Static Files
-```bash
-# Collect static files (for production)
-python manage.py collectstatic
-```
-
-### 7. Run Development Server
-```bash
-python manage.py runserver
-```
-
-Visit http://127.0.0.1:8000/ to see your e-commerce site!
-
-## Project Features
-- ✅ Product catalog with categories
-- ✅ Shopping cart functionality
-- ✅ User authentication (register/login)
-- ✅ Order management system
-- ✅ Payment processing (Credit Card, PayPal, Bank Transfer)
-- ✅ Admin dashboard
-- ✅ Responsive design with Tailwind CSS
-
-## Available URLs
-- `/` - Home page with product listings
-- `/admin/` - Django admin interface
-- `/accounts/login/` - User login
-- `/accounts/register/` - User registration
-- `/cart/` - Shopping cart
-- `/orders/create/` - Checkout
-- `/orders/history/` - Order history
-
-## Development Commands
-
-### Database Management
-```bash
-# Create new migrations
-python manage.py makemigrations
-
-# Apply migrations
-python manage.py migrate
-
-# Reset database (careful!)
-python manage.py flush
-```
-
-### Testing
-```bash
-# Run tests
+# Run all tests
 python manage.py test
 
-# Or using pytest
-pytest
+# Run specific app tests
+python manage.py test shop
+python manage.py test orders
 ```
 
-### Package Management
+### Stripe Testing
 ```bash
-# Add new package
-pip install package-name
-pip freeze > requirements.txt
-
-# Update all packages
-pip install --upgrade -r requirements.txt
+# Run Stripe integration test
+python test_stripe_basic.py
 ```
 
-## Production Deployment
+## 🚀 Deployment
 
 ### Environment Variables
-Set these environment variables in production:
+Set these in production:
 - `DEBUG=False`
 - `SECRET_KEY=<strong-secret-key>`
 - `ALLOWED_HOSTS=yourdomain.com`
-- Database configuration
-- Payment gateway keys
+- `STRIPE_PUBLISHABLE_KEY=pk_live_...`
+- `STRIPE_SECRET_KEY=sk_live_...`
 
 ### Static Files
 ```bash
-# Use WhiteNoise for static files (already configured)
 python manage.py collectstatic --noinput
 ```
 
-### Web Server
+### Database Migration
 ```bash
-# Using Gunicorn (included in requirements)
-gunicorn ecommerce_site.wsgi:application --bind 0.0.0.0:8000
+python manage.py migrate --noinput
 ```
 
-## Troubleshooting
+## 📝 Available URLs
 
-### Common Issues
-1. **ModuleNotFoundError**: Make sure virtual environment is activated
-2. **Database errors**: Run `python manage.py migrate`
-3. **Static files not loading**: Run `python manage.py collectstatic`
-4. **Permission errors on Windows**: Run PowerShell as Administrator
+- `/` - Product listings home page
+- `/admin/` - Django admin interface
+- `/accounts/login/` - User login
+- `/accounts/register/` - User registration
+- `/accounts/profile/` - User profile
+- `/cart/` - Shopping cart
+- `/orders/create/` - Checkout page
+- `/orders/history/` - Order history
+- `/orders/<id>/` - Order detail
+- `/orders/<id>/retry/` - Payment retry
 
-### Getting Help
-- Check Django documentation: https://docs.djangoproject.com/
-- Review project code comments
-- Check error logs in terminal
+## 🤝 Contributing
 
-## Optional Enhancements
-Uncomment packages in requirements.txt for additional features:
-- PostgreSQL/MySQL database support
-- REST API with Django REST Framework
-- Enhanced admin interface
-- Caching with Redis
-- Cloud storage with AWS S3
-- Search functionality
-- Social authentication
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 🆘 Support
+
+- **Documentation**: Check the inline code comments and docstrings
+- **Issues**: Create an issue on GitHub for bugs or feature requests
+- **Testing Guide**: See `STRIPE_TESTING.md` for payment testing
+- **Django Docs**: https://docs.djangoproject.com/
+- **Stripe Docs**: https://stripe.com/docs
+
+## 🎉 Acknowledgments
+
+- Django community for the excellent framework
+- Stripe for secure payment processing
+- Tailwind CSS for responsive design components

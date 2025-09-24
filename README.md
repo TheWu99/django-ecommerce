@@ -186,25 +186,373 @@ python manage.py test orders
 python test_stripe_basic.py
 ```
 
-## 🚀 Deployment
+## 🚀 Production Deployment
 
-### Environment Variables
-Set these in production:
-- `DEBUG=False`
-- `SECRET_KEY=<strong-secret-key>`
-- `ALLOWED_HOSTS=yourdomain.com`
-- `STRIPE_PUBLISHABLE_KEY=pk_live_...`
-- `STRIPE_SECRET_KEY=sk_live_...`
+### Prerequisites
+- Linux server (Ubuntu 20.04+ recommended)
+- Python 3.8+
+- PostgreSQL or MySQL database
+- Nginx web server
+- Domain name with SSL certificate
 
-### Static Files
+### Step 1: Server Setup
+
+#### 1.1 Update System
+```bash
+sudo apt update && sudo apt upgrade -y
+sudo apt install python3-pip python3-dev python3-venv nginx postgresql postgresql-contrib
+```
+
+#### 1.2 Create Application User
+```bash
+sudo adduser django
+sudo usermod -aG sudo django
+su - django
+```
+
+#### 1.3 Setup PostgreSQL Database
+```bash
+sudo -u postgres psql
+
+CREATE DATABASE django_ecommerce;
+CREATE USER django_user WITH PASSWORD 'your_secure_password';
+GRANT ALL PRIVILEGES ON DATABASE django_ecommerce TO django_user;
+ALTER USER django_user CREATEDB;
+\q
+```
+
+### Step 2: Application Deployment
+
+#### 2.1 Clone Repository
+```bash
+cd /home/django
+git clone https://github.com/YOUR_USERNAME/django-ecommerce-site.git
+cd django-ecommerce-site
+```
+
+#### 2.2 Create Virtual Environment
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install --upgrade pip
+```
+
+#### 2.3 Install Dependencies
+```bash
+pip install -r requirements.txt
+pip install gunicorn psycopg2-binary
+```
+
+#### 2.4 Environment Configuration
+```bash
+cp .env.example .env
+nano .env
+```
+
+**Production .env file:**
+```bash
+# Django Settings
+DEBUG=False
+SECRET_KEY=your_super_secret_key_here_make_it_long_and_random
+ALLOWED_HOSTS=yourdomain.com,www.yourdomain.com
+
+# Database Configuration
+DATABASE_URL=postgres://django_user:your_secure_password@localhost:5432/django_ecommerce
+
+# Stripe Live Keys (replace with your live keys)
+STRIPE_PUBLISHABLE_KEY=pk_live_your_live_publishable_key
+STRIPE_SECRET_KEY=sk_live_your_live_secret_key
+STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret
+
+# Email Configuration (for production)
+EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USE_TLS=True
+EMAIL_HOST_USER=your_email@gmail.com
+EMAIL_HOST_PASSWORD=your_app_password
+
+# Security Settings
+SECURE_SSL_REDIRECT=True
+SECURE_PROXY_SSL_HEADER=('HTTP_X_FORWARDED_PROTO', 'https')
+SESSION_COOKIE_SECURE=True
+CSRF_COOKIE_SECURE=True
+```
+
+#### 2.5 Database Migration
 ```bash
 python manage.py collectstatic --noinput
+python manage.py makemigrations
+python manage.py migrate
+python manage.py createsuperuser
 ```
 
-### Database Migration
+### Step 3: Gunicorn Setup
+
+#### 3.1 Test Gunicorn
 ```bash
-python manage.py migrate --noinput
+gunicorn --bind 0.0.0.0:8000 ecommerce_site.wsgi:application
 ```
+
+#### 3.2 Create Gunicorn Service
+```bash
+sudo nano /etc/systemd/system/django-ecommerce.service
+```
+
+**Service file content:**
+```ini
+[Unit]
+Description=Django E-commerce Gunicorn daemon
+After=network.target
+
+[Service]
+User=django
+Group=www-data
+WorkingDirectory=/home/django/django-ecommerce-site
+ExecStart=/home/django/django-ecommerce-site/.venv/bin/gunicorn \
+          --access-logfile - \
+          --workers 3 \
+          --bind unix:/home/django/django-ecommerce-site/django-ecommerce.sock \
+          ecommerce_site.wsgi:application
+
+[Install]
+WantedBy=multi-user.target
+```
+
+#### 3.3 Start and Enable Service
+```bash
+sudo systemctl start django-ecommerce
+sudo systemctl enable django-ecommerce
+sudo systemctl status django-ecommerce
+```
+
+### Step 4: Nginx Configuration
+
+#### 4.1 Create Nginx Configuration
+```bash
+sudo nano /etc/nginx/sites-available/django-ecommerce
+```
+
+**Nginx configuration:**
+```nginx
+server {
+    listen 80;
+    server_name yourdomain.com www.yourdomain.com;
+    
+    # Redirect HTTP to HTTPS
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name yourdomain.com www.yourdomain.com;
+    
+    # SSL Certificate (use Let's Encrypt)
+    ssl_certificate /etc/letsencrypt/live/yourdomain.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/yourdomain.com/privkey.pem;
+    
+    # SSL Configuration
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers off;
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384;
+    
+    location = /favicon.ico { 
+        access_log off; 
+        log_not_found off; 
+    }
+    
+    # Static files
+    location /static/ {
+        root /home/django/django-ecommerce-site;
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+    }
+    
+    # Media files
+    location /media/ {
+        root /home/django/django-ecommerce-site;
+        expires 7d;
+        add_header Cache-Control "public";
+    }
+    
+    # Main application
+    location / {
+        include proxy_params;
+        proxy_pass http://unix:/home/django/django-ecommerce-site/django-ecommerce.sock;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Host $host;
+        proxy_redirect off;
+    }
+    
+    # Security headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "no-referrer-when-downgrade" always;
+    add_header Content-Security-Policy "default-src 'self' https://js.stripe.com https://api.stripe.com; script-src 'self' 'unsafe-inline' https://js.stripe.com; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; img-src 'self' data: https:; font-src 'self';" always;
+}
+```
+
+#### 4.2 Enable Site and Restart Nginx
+```bash
+sudo ln -s /etc/nginx/sites-available/django-ecommerce /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl restart nginx
+```
+
+### Step 5: SSL Certificate (Let's Encrypt)
+
+#### 5.1 Install Certbot
+```bash
+sudo apt install certbot python3-certbot-nginx
+```
+
+#### 5.2 Obtain SSL Certificate
+```bash
+sudo certbot --nginx -d yourdomain.com -d www.yourdomain.com
+```
+
+#### 5.3 Auto-Renewal
+```bash
+sudo systemctl status certbot.timer
+sudo certbot renew --dry-run
+```
+
+### Step 6: Stripe Webhook Configuration
+
+#### 6.1 Configure Webhook Endpoint
+1. Go to [Stripe Dashboard](https://dashboard.stripe.com/)
+2. Navigate to **Developers → Webhooks**
+3. Click **Add endpoint**
+4. URL: `https://yourdomain.com/orders/stripe/webhook/`
+5. Events: Select `payment_intent.succeeded` and `payment_intent.payment_failed`
+6. Copy the webhook signing secret to your `.env` file
+
+### Step 7: Monitoring and Maintenance
+
+#### 7.1 Log Files
+```bash
+# Application logs
+sudo journalctl -u django-ecommerce -f
+
+# Nginx logs
+sudo tail -f /var/log/nginx/access.log
+sudo tail -f /var/log/nginx/error.log
+```
+
+#### 7.2 System Monitoring
+```bash
+# Check service status
+sudo systemctl status django-ecommerce
+sudo systemctl status nginx
+sudo systemctl status postgresql
+
+# Monitor resources
+htop
+df -h
+```
+
+#### 7.3 Database Backup
+```bash
+# Create backup script
+nano /home/django/backup_db.sh
+```
+
+**Backup script:**
+```bash
+#!/bin/bash
+DATE=$(date +"%Y%m%d_%H%M%S")
+BACKUP_DIR="/home/django/backups"
+mkdir -p $BACKUP_DIR
+
+pg_dump -U django_user -h localhost django_ecommerce > $BACKUP_DIR/django_ecommerce_$DATE.sql
+
+# Keep only last 7 days of backups
+find $BACKUP_DIR -name "*.sql" -mtime +7 -delete
+```
+
+```bash
+chmod +x /home/django/backup_db.sh
+
+# Add to crontab for daily backups
+crontab -e
+# Add: 0 2 * * * /home/django/backup_db.sh
+```
+
+### Step 8: Performance Optimization
+
+#### 8.1 Install Redis (for caching)
+```bash
+sudo apt install redis-server
+pip install django-redis
+```
+
+#### 8.2 Update Django Settings for Production
+Add to `settings.py`:
+```python
+# Caching
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://127.0.0.1:6379/1',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
+    }
+}
+
+# Session storage
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_CACHE_ALIAS = 'default'
+```
+
+### Step 9: Deployment Checklist
+
+✅ **Security:**
+- [ ] `DEBUG = False`
+- [ ] Strong `SECRET_KEY`
+- [ ] `ALLOWED_HOSTS` configured
+- [ ] SSL certificate installed
+- [ ] Security headers configured
+- [ ] Database credentials secured
+
+✅ **Performance:**
+- [ ] Static files collected and served by Nginx
+- [ ] Database optimized
+- [ ] Caching configured
+- [ ] Gzip compression enabled
+
+✅ **Monitoring:**
+- [ ] Log rotation configured
+- [ ] Database backups scheduled
+- [ ] Uptime monitoring setup
+- [ ] Error tracking configured
+
+✅ **Stripe:**
+- [ ] Live API keys configured
+- [ ] Webhook endpoints set up
+- [ ] Payment flow tested
+- [ ] SSL verified for webhooks
+
+### Step 10: Deployment Updates
+
+#### 10.1 Update Application
+```bash
+cd /home/django/django-ecommerce-site
+git pull origin main
+source .venv/bin/activate
+pip install -r requirements.txt
+python manage.py collectstatic --noinput
+python manage.py migrate
+sudo systemctl restart django-ecommerce
+```
+
+#### 10.2 Zero-Downtime Deployment (Advanced)
+```bash
+# Use Blue-Green deployment with multiple Gunicorn workers
+# Or implement rolling updates with load balancer
+```
+
+This comprehensive deployment guide ensures your Django e-commerce site runs securely and efficiently in production!
 
 ## 📝 Available URLs
 

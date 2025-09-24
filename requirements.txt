@@ -1,0 +1,99 @@
+# ======================================
+# DJANGO E-COMMERCE PROJECT REQUIREMENTS
+# ======================================
+
+# Core Django Framework
+Django==5.2.6
+
+# Image Processing (for product images)
+Pillow==11.3.0
+
+# Configuration & Environment
+python-decouple==3.8
+python-dotenv==3.1.0
+
+# Form Styling & Widgets
+django-crispy-forms==2.4
+crispy-bootstrap5==2025.6
+django-widget-tweaks==1.5.0
+
+# Development & Debugging
+django-debug-toolbar==6.0.0
+django-extensions==3.2.3
+
+# Static Files & Production
+whitenoise==6.11.0
+gunicorn==23.0.0
+
+# Payment Processing
+stripe==12.5.1
+
+# Testing
+pytest==8.3.5
+pytest-django==4.9.0
+
+# HTTP Requests
+requests==2.32.5
+
+# Core Dependencies (auto-installed with Django)
+asgiref==3.9.2
+sqlparse==0.5.3
+tzdata==2025.2
+typing_extensions==4.15.0
+
+# SSL/Security
+certifi==2025.8.3
+charset-normalizer==3.4.3
+idna==3.10
+urllib3==2.5.0
+
+# Testing Dependencies
+iniconfig==2.0.0
+pluggy==1.5.0
+
+# Packaging
+packaging==25.0
+
+# ======================================
+# OPTIONAL DEPENDENCIES (uncomment as needed)
+# ======================================
+
+# Database Drivers (if not using SQLite)
+# psycopg2-binary>=2.9.0    # PostgreSQL
+# mysqlclient>=2.1.0        # MySQL
+
+# API Development
+# djangorestframework>=3.14.0
+
+# Enhanced Admin
+# django-admin-interface>=0.25.0
+
+# Caching & Performance
+# redis>=4.6.0
+# django-redis>=5.3.0
+
+# Task Queue
+# celery>=5.3.0
+# django-rq>=2.8.1
+
+# Cloud Storage
+# django-storages>=1.14.0
+# boto3>=1.28.57
+
+# Search
+# django-haystack>=3.2.1
+# whoosh>=2.7.4
+
+# Social Auth
+# django-allauth>=0.55.0
+
+# Monitoring
+# sentry-sdk>=1.32.0
+
+# Email
+# django-anymail>=10.1
+
+# Code Quality
+# black>=23.0.0
+# flake8>=6.0.0
+# isort>=5.12.0

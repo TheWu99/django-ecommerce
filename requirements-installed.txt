@@ -1,0 +1,41 @@
+# Core Django Framework
+Django==5.2.6
+
+# Image Processing (for product images)
+Pillow==11.3.0
+
+# Configuration Management
+python-decouple==3.8
+
+# Form Styling & Widgets
+django-crispy-forms==2.4
+crispy-bootstrap5==2025.6
+django-widget-tweaks==1.5.0
+
+# Development & Debugging
+django-debug-toolbar==6.0.0
+
+# Static Files & Production
+whitenoise==6.11.0
+gunicorn==23.0.0
+
+# Payment Processing
+stripe==12.5.1
+
+# HTTP Requests
+requests==2.32.5
+
+# Core Dependencies (auto-installed with Django)
+asgiref==3.9.2
+sqlparse==0.5.3
+tzdata==2025.2
+typing_extensions==4.15.0
+
+# SSL/Security
+certifi==2025.8.3
+charset-normalizer==3.4.3
+idna==3.10
+urllib3==2.5.0
+
+# Packaging
+packaging==25.0

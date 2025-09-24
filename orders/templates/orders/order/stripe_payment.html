@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %}Complete Payment - Stripe{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto">
+        <div class="bg-white rounded-lg shadow-lg p-8">
+            <h1 class="text-3xl font-bold mb-8 text-center text-gray-800">Complete Your Payment</h1>
+            
+            <!-- Order Summary -->
+            <div class="mb-8 p-6 bg-gray-50 rounded-lg">
+                <h3 class="text-xl font-semibold mb-4">Order Summary</h3>
+                <div class="space-y-2">
+                    <div class="flex justify-between">
+                        <span>Order #{{ order.id }}</span>
+                        <span class="font-semibold">${{ order.get_total_cost }}</span>
+                    </div>
+                    <div class="flex justify-between text-sm text-gray-600">
+                        <span>Items: {{ order.items.count }}</span>
+                        <span>{{ order.email }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stripe Payment Form -->
+            <form id="payment-form">
+                <div id="payment-element">
+                    <!-- Stripe Elements will create form elements here -->
+                </div>
+                
+                <div class="mt-6">
+                    <button 
+                        id="submit" 
+                        class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition duration-200"
+                    >
+                        <div class="hidden" id="spinner">Processing...</div>
+                        <span id="button-text">Pay ${{ order.get_total_cost }}</span>
+                    </button>
+                </div>
+                
+                <div id="payment-message" class="hidden mt-4 p-4 rounded-lg"></div>
+            </form>
+
+            <!-- Test Card Information -->
+            <div class="mt-8 p-4 bg-blue-50 rounded-lg">
+                <h4 class="font-semibold text-blue-800 mb-2">Test Card Numbers</h4>
+                <div class="text-sm text-blue-700 space-y-1">
+                    <div><strong>Success:</strong> 4242 4242 4242 4242</div>
+                    <div><strong>Declined:</strong> 4000 0000 0000 0002</div>
+                    <div><strong>Use any future date for expiry, any 3-digit CVC</strong></div>
+                </div>
+            </div>
+
+            <!-- Back to Order -->
+            <div class="mt-6 text-center">
+                <a href="{% url 'orders:order_detail' order.id %}" 
+                   class="text-gray-600 hover:text-gray-800 underline">
+                    ← Back to Order Details
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+// Initialize Stripe
+const stripe = Stripe('{{ stripe_publishable_key }}');
+
+let elements;
+
+initialize();
+checkStatus();
+
+document
+    .querySelector("#payment-form")
+    .addEventListener("submit", handleSubmit);
+
+// Fetches a payment intent and captures the client secret
+async function initialize() {
+    const clientSecret = '{{ client_secret }}';
+
+    elements = stripe.elements({ clientSecret });
+
+    const paymentElementOptions = {
+        layout: "tabs",
+    };
+
+    const paymentElement = elements.create("payment", paymentElementOptions);
+    paymentElement.mount("#payment-element");
+}
+
+async function handleSubmit(e) {
+    e.preventDefault();
+    setLoading(true);
+
+    const { error } = await stripe.confirmPayment({
+        elements,
+        confirmParams: {
+            // Make sure to change this to your payment completion page
+            return_url: window.location.origin + "{% url 'orders:stripe_payment_success' order.id %}",
+        },
+    });
+
+    // This point will only be reached if there is an immediate error when
+    // confirming the payment. Otherwise, your customer will be redirected to
+    // your `return_url`. For some payment methods like iDEAL, your customer will
+    // be redirected to an intermediate site first to authorize the payment, then
+    // redirected to the `return_url`.
+    if (error.type === "card_error" || error.type === "validation_error") {
+        showMessage(error.message);
+    } else {
+        showMessage("An unexpected error occurred.");
+    }
+
+    setLoading(false);
+}
+
+// Fetches the payment intent status after payment submission
+async function checkStatus() {
+    const clientSecret = new URLSearchParams(window.location.search).get(
+        "payment_intent_client_secret"
+    );
+
+    if (!clientSecret) {
+        return;
+    }
+
+    const { paymentIntent } = await stripe.retrievePaymentIntent(clientSecret);
+
+    switch (paymentIntent.status) {
+        case "succeeded":
+            showMessage("Payment succeeded!");
+            break;
+        case "processing":
+            showMessage("Your payment is processing.");
+            break;
+        case "requires_payment_method":
+            showMessage("Your payment was not successful, please try again.");
+            break;
+        default:
+            showMessage("Something went wrong.");
+            break;
+    }
+}
+
+// ------- UI helpers -------
+
+function showMessage(messageText) {
+    const messageContainer = document.querySelector("#payment-message");
+
+    messageContainer.classList.remove("hidden");
+    messageContainer.textContent = messageText;
+
+    setTimeout(function () {
+        messageContainer.classList.add("hidden");
+        messageContainer.textContent = "";
+    }, 4000);
+}
+
+// Show a spinner on payment submission
+function setLoading(isLoading) {
+    if (isLoading) {
+        // Disable the button and show a spinner
+        document.querySelector("#submit").disabled = true;
+        document.querySelector("#spinner").classList.remove("hidden");
+        document.querySelector("#button-text").classList.add("hidden");
+    } else {
+        document.querySelector("#submit").disabled = false;
+        document.querySelector("#spinner").classList.add("hidden");
+        document.querySelector("#button-text").classList.remove("hidden");
+    }
+}
+</script>
+{% endblock %}

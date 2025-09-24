@@ -1,0 +1,188 @@
+/* Custom CSS for E-Commerce Store */
+
+/* Button styles */
+.btn-primary {
+    @apply bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors duration-200;
+}
+
+.btn-secondary {
+    @apply bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded transition-colors duration-200;
+}
+
+.btn-danger {
+    @apply bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded transition-colors duration-200;
+}
+
+/* Card styles */
+.card {
+    @apply bg-white shadow-md rounded-lg p-6;
+}
+
+.card-header {
+    @apply border-b border-gray-200 pb-4 mb-4;
+}
+
+/* Product grid */
+.product-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6;
+}
+
+/* Price styling */
+.price {
+    @apply text-lg font-bold text-green-600;
+}
+
+.price-large {
+    @apply text-2xl font-bold text-green-600;
+}
+
+/* Badge styles */
+.badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+}
+
+.badge-success {
+    @apply bg-green-100 text-green-800;
+}
+
+.badge-warning {
+    @apply bg-yellow-100 text-yellow-800;
+}
+
+.badge-danger {
+    @apply bg-red-100 text-red-800;
+}
+
+.badge-info {
+    @apply bg-blue-100 text-blue-800;
+}
+
+/* Cart item styles */
+.cart-item {
+    @apply flex items-center justify-between border-b py-4 last:border-b-0;
+}
+
+/* Form styles */
+.form-input {
+    @apply block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm;
+}
+
+.form-select {
+    @apply block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm;
+}
+
+.form-textarea {
+    @apply block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm;
+}
+
+/* Alert styles */
+.alert {
+    @apply px-4 py-3 rounded mb-4;
+}
+
+.alert-success {
+    @apply bg-green-100 border border-green-400 text-green-700;
+}
+
+.alert-error {
+    @apply bg-red-100 border border-red-400 text-red-700;
+}
+
+.alert-warning {
+    @apply bg-yellow-100 border border-yellow-400 text-yellow-700;
+}
+
+.alert-info {
+    @apply bg-blue-100 border border-blue-400 text-blue-700;
+}
+
+/* Loading spinner */
+.spinner {
+    @apply animate-spin h-5 w-5;
+}
+
+/* Hover effects */
+.hover-lift {
+    @apply transition-transform duration-200 hover:-translate-y-1;
+}
+
+.hover-shadow {
+    @apply transition-shadow duration-200 hover:shadow-lg;
+}
+
+/* Text truncation */
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Custom scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Responsive utilities */
+@media (max-width: 640px) {
+    .mobile-hidden {
+        display: none;
+    }
+}
+
+/* Payment form styles */
+.payment-method-section {
+    display: none;
+}
+
+.payment-method-section.active {
+    display: block;
+}
+
+.payment-method-radio:checked + label {
+    @apply bg-blue-50 border-blue-500;
+}
+
+.secure-payment {
+    @apply bg-green-50 border border-green-200 rounded-lg p-4;
+}
+
+.secure-payment .icon {
+    @apply text-green-600;
+}
+
+.secure-payment .text {
+    @apply text-green-800 font-medium;
+}
+
+.secure-payment .subtext {
+    @apply text-green-700 text-sm;
+}
+
+/* Print styles */
+@media print {
+    .print-hidden {
+        display: none !important;
+    }
+}

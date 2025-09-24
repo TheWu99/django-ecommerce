@@ -1,0 +1,16 @@
+{
+  "name": "django-ecommerce",
+  "version": "1.0.0",
+  "description": "Django e-commerce website with Tailwind CSS",
+  "main": "index.js",
+  "scripts": {
+    "build-css": "tailwindcss -i ./static/css/tailwind.css -o ./static/css/style.css --watch",
+    "build": "tailwindcss -i ./static/css/tailwind.css -o ./static/css/style.css"
+  },
+  "keywords": ["django", "ecommerce", "tailwind"],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "tailwindcss": "^3.3.0"
+  }
+}
